@@ -23,7 +23,7 @@ A full-stack blogging platform where users can create, edit, publish, and manage
 
 ## 🛠️ Tech Stack
 
-**Frontend:** React.js, [Tailwind CSS / CSS3 — update to match]
+**Frontend:** ReactJS, [Tailwind CSS / CSS3 — update to match]
 **Backend:** Node.js, Express.js
 **Database:** MongoDB
 **Auth:** [JWT / Firebase Auth — update to match]
