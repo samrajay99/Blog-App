@@ -1,0 +1,53 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+type Category = "All" | "Technology" | "Health" | "Lifestyle" | "Education" | "Travel";
+type Post = { id: number; title: string; excerpt: string; category: Exclude<Category, "All">; author: string; initials: string; date: string; readTime: string; accent: string; image: string; featured?: boolean };
+const categories: Category[] = ["All", "Technology", "Health", "Lifestyle", "Education", "Travel"];
+const seedPosts: Post[] = [
+  { id: 1, title: "The quiet return of the personal computer", excerpt: "Why the next wave of useful technology will feel less like a feed and more like a well-lit desk.", category: "Technology", author: "Maya Chen", initials: "MC", date: "Sep 18, 2026", readTime: "8 min read", accent: "coral", image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=85", featured: true },
+  { id: 2, title: "A field guide to a less frantic morning", excerpt: "Small rituals for making the first hour feel like yours again.", category: "Health", author: "Jon Bell", initials: "JB", date: "Sep 16, 2026", readTime: "5 min read", accent: "sage", image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=800&q=85" },
+  { id: 3, title: "The case for a smaller, stranger wardrobe", excerpt: "Personal style starts where optimization ends.", category: "Lifestyle", author: "Ari Adeyemi", initials: "AA", date: "Sep 12, 2026", readTime: "6 min read", accent: "mustard", image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=85" },
+  { id: 4, title: "Learning in public, without performing", excerpt: "What changes when curiosity is allowed to be unfinished.", category: "Education", author: "Noah Williams", initials: "NW", date: "Sep 09, 2026", readTime: "7 min read", accent: "blue", image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=85" },
+  { id: 5, title: "A map of the cities that let you wander", excerpt: "The pleasure of a place is often hidden just beyond the itinerary.", category: "Travel", author: "Lena Ortiz", initials: "LO", date: "Sep 04, 2026", readTime: "4 min read", accent: "lilac", image: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=800&q=85" },
+];
+
+function Avatar({ initials, large = false }: { initials: string; large?: boolean }) { return <span className={large ? "avatar avatar-large" : "avatar"}>{initials}</span>; }
+
+export default function Home() {
+  const [activeCategory, setActiveCategory] = useState<Category>("All");
+  const [query, setQuery] = useState("");
+  const [saved, setSaved] = useState<number[]>([2]);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [showComposer, setShowComposer] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [posts, setPosts] = useState(seedPosts);
+  const [newTitle, setNewTitle] = useState("");
+  const [newExcerpt, setNewExcerpt] = useState("");
+  const filteredPosts = useMemo(() => posts.filter((post) => {
+    const matchesCategory = activeCategory === "All" || post.category === activeCategory;
+    const matchesQuery = `${post.title} ${post.excerpt} ${post.author}`.toLowerCase().includes(query.toLowerCase());
+    return matchesCategory && matchesQuery;
+  }), [activeCategory, posts, query]);
+  const featured = filteredPosts.find((post) => post.featured) ?? filteredPosts[0];
+  const remaining = filteredPosts.filter((post) => post.id !== featured?.id);
+  function toggleSaved(id: number) { setSaved((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
+  function publishPost() {
+    if (!newTitle.trim() || !newExcerpt.trim()) return;
+    setPosts((current) => [{ id: Date.now(), title: newTitle, excerpt: newExcerpt, category: "Technology", author: "Samraj Gupta", initials: "SG", date: "Just now", readTime: "3 min read", accent: "coral", image: seedPosts[0].image }, ...current]);
+    setNewTitle(""); setNewExcerpt(""); setShowComposer(false);
+  }
+  return (
+    <main>
+      <header className="site-header"><a className="wordmark" href="#top">signal<span>.</span></a><nav className="main-nav" aria-label="Main navigation"><a className="nav-active" href="#discover">Discover</a><a href="#following">Following</a><a href="#about">About</a></nav><div className="header-actions"><button className="icon-button" aria-label="Search" onClick={() => document.getElementById("search")?.focus()}>⌕</button><button className="write-button" onClick={() => setShowComposer(true)}><span>＋</span> Write</button><button className="profile-button" aria-label="Open profile menu" onClick={() => setShowMenu(!showMenu)}><Avatar initials="SG" /></button>{showMenu && <div className="profile-menu"><strong>Samraj Gupta</strong><span>Writer account</span><button onClick={() => setShowMenu(false)}>Close menu</button></div>}</div></header>
+      <section className="intro" id="top"><div><p className="eyebrow">The independent journal</p><h1>Ideas with<br /><em>staying power.</em></h1><p className="intro-copy">Signal is a home for thoughtful writing on the things shaping how we live, work, and make sense of the world.</p></div><div className="intro-note"><span className="note-line" /><p>New perspectives,<br />every Wednesday.</p><button onClick={() => document.getElementById("newsletter")?.scrollIntoView({ behavior: "smooth" })}>Get the digest <span>↗</span></button></div></section>
+      <section className="feed" id="discover"><div className="feed-toolbar"><div className="categories" role="tablist" aria-label="Filter by category">{categories.map((category) => <button key={category} className={activeCategory === category ? "category-active" : ""} onClick={() => setActiveCategory(category)}>{category}</button>)}</div><label className="search-box"><span>⌕</span><input id="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search stories" /></label></div>
+        {featured ? <><article className="featured-story" onClick={() => setSelectedPost(featured)}><div className="featured-image"><img src={featured.image} alt="" /><span className={`image-tag ${featured.accent}`}>{featured.category}</span></div><div className="featured-copy"><p className="story-kicker">Featured story <span>•</span> {featured.readTime}</p><h2>{featured.title}</h2><p className="story-excerpt">{featured.excerpt}</p><div className="story-meta"><Avatar initials={featured.initials} /><span><strong>{featured.author}</strong><small>{featured.date}</small></span><button aria-label="Save story" className={saved.includes(featured.id) ? "saved" : "save"} onClick={(event) => { event.stopPropagation(); toggleSaved(featured.id); }}>♡</button></div></div></article><div className="section-heading"><h3>Latest stories</h3><span>{filteredPosts.length} stories</span></div><div className="story-grid">{remaining.map((post) => <article className="story-card" key={post.id} onClick={() => setSelectedPost(post)}><div className="card-image"><img src={post.image} alt="" /><span className={`image-tag ${post.accent}`}>{post.category}</span></div><div className="card-body"><p className="story-kicker">{post.readTime}</p><h3>{post.title}</h3><p>{post.excerpt}</p><div className="story-meta"><Avatar initials={post.initials} /><span><strong>{post.author}</strong><small>{post.date}</small></span><button aria-label="Save story" className={saved.includes(post.id) ? "saved" : "save"} onClick={(event) => { event.stopPropagation(); toggleSaved(post.id); }}>♡</button></div></div></article>)}</div></> : <div className="empty-state"><span>⌕</span><h3>No stories found</h3><p>Try a different category or search term.</p></div>}
+      </section>
+      <section className="newsletter" id="newsletter"><div><p className="eyebrow">The Signal digest</p><h2>A little clarity,<br /><em>once a week.</em></h2></div><form onSubmit={(event) => { event.preventDefault(); (event.currentTarget.elements.namedItem("email") as HTMLInputElement).value = "You are on the list"; }}><p>No noise, no selling your attention. Just our best new writing.</p><div className="email-row"><input name="email" type="email" required placeholder="Your email address" /><button type="submit">Subscribe <span>↗</span></button></div></form></section><footer><a className="wordmark" href="#top">signal<span>.</span></a><p>Independent writing for a more considered internet.</p><span>© 2026 Signal Journal</span></footer>
+      {selectedPost && <div className="modal-backdrop" onClick={() => setSelectedPost(null)}><article className="reading-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setSelectedPost(null)}>×</button><img src={selectedPost.image} alt="" /><div className="reading-content"><span className={`image-tag ${selectedPost.accent}`}>{selectedPost.category}</span><p className="story-kicker">{selectedPost.readTime} <span>•</span> {selectedPost.date}</p><h2>{selectedPost.title}</h2><p className="reading-lede">{selectedPost.excerpt}</p><div className="author-row"><Avatar initials={selectedPost.initials} large /><span><strong>{selectedPost.author}</strong><small>Contributing writer</small></span></div><p className="reading-text">There is a particular kind of attention that only appears when we stop trying to outrun the day. This is a space for following that thought a little further, with room for the details, the contradictions, and the useful questions that do not resolve themselves in a single scroll.</p><p className="reading-text">The best ideas are rarely loud. They are the ones that stay with us after the screen goes dark, changing the shape of an ordinary afternoon.</p></div></article></div>}
+      {showComposer && <div className="modal-backdrop" onClick={() => setShowComposer(false)}><div className="composer" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowComposer(false)}>×</button><p className="eyebrow">New story</p><h2>Put something<br /><em>worth reading</em> into the world.</h2><input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} placeholder="Story title" /><textarea value={newExcerpt} onChange={(event) => setNewExcerpt(event.target.value)} placeholder="A short description to draw readers in..." rows={4} /><div className="composer-footer"><span>Draft saved locally</span><button className="publish-button" onClick={publishPost}>Publish story <span>↗</span></button></div></div></div>}
+    </main>
+  );
+}
